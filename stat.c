@@ -1,34 +1,41 @@
+/*
+ * stat.c — 成员B：递归遍历与统计功能
+ *
+ * 任务：
+ *   1. 实现 countFiles —— 深度优先遍历，累计 isFile==true 的节点数
+ *   2. 实现 getMaxDepth —— 计算树的最大深度（根为第1层）
+ *
+ * 依赖：tree.h（TreeNode 结构体定义）
+ * 编译：cl /utf-8 /c stat.c
+ *
+ * ── 给成员B ──
+ * 当前是空壳（返回 0），目的是让主程序能先编译通过。
+ * 你只需要把下面两个函数体里的 return 0 替换成真正的实现即可。
+ * 函数签名不要改——main.c 和 stat.h 都依赖它们。
+ */
+
 #include "stat.h"
 
-/* ===== 成员B：递归遍历与统计功能 ===== */
-
-/*
- * 统计文件总数：深度优先遍历，累计 isFile 为 true 的节点。
- * 时间复杂度 O(n)，空间复杂度 O(depth)（递归栈）。
- */
+/* ================================================================
+ * countFiles(node)
+ *   从 node 开始深度优先遍历整棵子树，返回文件（isFile==true）总数。
+ *   提示：递归遍历 children 链表，遇文件 +1，遇文件夹继续深入。
+ *   时间复杂度目标：O(n)
+ * ================================================================ */
 int countFiles(TreeNode* node) {
-    if (node == NULL) return 0;
-    int count = node->isFile ? 1 : 0;
-    TreeNode* child = node->children;
-    while (child != NULL) {
-        count += countFiles(child);
-        child = child->next;
-    }
-    return count;
+    /* TODO：成员B在此实现 */
+    (void)node;
+    return 0;
 }
 
-/*
- * 文件夹层数：递归计算最大深度。
- * 根为第1层，空树返回0。
- */
+/* ================================================================
+ * getMaxDepth(node)
+ *   返回从 node 开始的最大深度。
+ *   约定：根为第 1 层。空节点（NULL）返回 0。
+ *   提示：递归取所有子节点深度的最大值 + 1。
+ * ================================================================ */
 int getMaxDepth(TreeNode* node) {
-    if (node == NULL) return 0;
-    int maxChildDepth = 0;
-    TreeNode* child = node->children;
-    while (child != NULL) {
-        int d = getMaxDepth(child);
-        if (d > maxChildDepth) maxChildDepth = d;
-        child = child->next;
-    }
-    return maxChildDepth + 1;
+    /* TODO：成员B在此实现 */
+    (void)node;
+    return 0;
 }
