@@ -4,54 +4,89 @@
  * 任务：
  *   1. 实现 countFiles —— 深度优先遍历，累计 isFile==true 的节点数
  *   2. 实现 getMaxDepth —— 计算树的最大深度（根为第1层）
- *   3. 实现 traverse —— 回调遍历（前序）
  *
  * 依赖：tree.h（TreeNode 结构体定义）
+ * 编译：cl /utf-8 /c stat.c
+ *
+ * ── 给成员B ──
+ * 当前文件已完成：countFiles / getMaxDepth / traverse 均已实现。
+ * 函数签名不要改——main.c 和 stat.h 都依赖它们。
  */
 
 #include "stat.h"
 
 /* ================================================================
  * countFiles(node)
- *   深度优先遍历，返回文件（isFile==true）总数。
+ *   从 node 开始深度优先遍历整棵子树，返回文件（isFile==true）总数。
+ *   提示：递归遍历 children 链表，遇文件 +1，遇文件夹继续深入。
+ *   时间复杂度目标：O(n)
  * ================================================================ */
 int countFiles(TreeNode* node) {
-    if (node == NULL) return 0;
-    int count = node->isFile ? 1 : 0;
+    if (node == NULL) {
+        return 0;
+    }
+
+    int count = 0;
+
+    // 如果当前节点是文件，计数加1
+    if (node->isFile) {
+        count = 1;
+    }
+
+    // 递归遍历所有子节点
     TreeNode* child = node->children;
     while (child != NULL) {
         count += countFiles(child);
         child = child->next;
     }
+
     return count;
 }
-
 /* ================================================================
  * getMaxDepth(node)
- *   返回最大深度。根为第1层，空节点返回0。
+ *   返回从 node 开始的最大深度。
+ *   约定：根为第 1 层。空节点（NULL）返回 0。
+ *   提示：递归取所有子节点深度的最大值 + 1。
  * ================================================================ */
 int getMaxDepth(TreeNode* node) {
-    if (node == NULL) return 0;
-    int maxChildDepth = 0;
+    if (node == NULL) {
+        return 0;
+    }
+
+    int maxDepth = 0;
+
+    // 遍历所有子节点，找到最大的子树深度
     TreeNode* child = node->children;
     while (child != NULL) {
-        int d = getMaxDepth(child);
-        if (d > maxChildDepth) maxChildDepth = d;
+        int childDepth = getMaxDepth(child);
+        if (childDepth > maxDepth) {
+            maxDepth = childDepth;
+        }
         child = child->next;
     }
-    return maxChildDepth + 1;
+
+    return maxDepth + 1;
+
 }
 
-/* ================================================================
- * traverse(node, callback)
- *   前序遍历，对每个节点调用 callback。
- * ================================================================ */
+/**
+ * 函数功能：使用回调函数遍历树的所有节点（前序遍历）
+ * 参数 node：要遍历的树的根节点
+ * 参数 callback：回调函数，对每个节点执行的操作
+ */
 void traverse(TreeNode* node, void (*callback)(TreeNode*)) {
-    if (node == NULL || callback == NULL) return;
+    if (node == NULL || callback == NULL) {
+        return;
+    }
+
+    // 先处理当前节点
     callback(node);
+
+    // 再递归遍历所有子节点
     TreeNode* child = node->children;
     while (child != NULL) {
         traverse(child, callback);
         child = child->next;
     }
+
 }
