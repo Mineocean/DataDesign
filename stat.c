@@ -23,11 +23,26 @@
  *   时间复杂度目标：O(n)
  * ================================================================ */
 int countFiles(TreeNode* node) {
-    /* TODO：成员B在此实现 */
-    (void)node;
-    return 0;
-}
+    if (node == NULL) {
+        return 0;
+    }
 
+    int count = 0;
+
+    // 如果当前节点是文件，计数加1
+    if (node->isFile) {
+        count = 1;
+    }
+
+    // 递归遍历所有子节点
+    TreeNode* child = node->children;
+    while (child != NULL) {
+        count += countFiles(child);
+        child = child->next;
+    }
+
+    return count;
+}
 /* ================================================================
  * getMaxDepth(node)
  *   返回从 node 开始的最大深度。
@@ -35,7 +50,44 @@ int countFiles(TreeNode* node) {
  *   提示：递归取所有子节点深度的最大值 + 1。
  * ================================================================ */
 int getMaxDepth(TreeNode* node) {
-    /* TODO：成员B在此实现 */
-    (void)node;
-    return 0;
+    if (node == NULL) {
+        return -1;  // 空树深度为-1
+    }
+
+    int maxDepth = 0;
+
+    // 遍历所有子节点，找到最大的子树深度
+    TreeNode* child = node->children;
+    while (child != NULL) {
+        int childDepth = getMaxDepth(child) + 1;
+        if (childDepth > maxDepth) {
+            maxDepth = childDepth;
+        }
+        child = child->next;
+    }
+
+    return maxDepth;
+
+}
+
+/**
+ * 函数功能：使用回调函数遍历树的所有节点（前序遍历）
+ * 参数 node：要遍历的树的根节点
+ * 参数 callback：回调函数，对每个节点执行的操作
+ */
+void traverse(TreeNode* node, void (*callback)(TreeNode*)) {
+    if (node == NULL || callback == NULL) {
+        return;
+    }
+
+    // 先处理当前节点
+    callback(node);
+
+    // 再递归遍历所有子节点
+    TreeNode* child = node->children;
+    while (child != NULL) {
+        traverse(child, callback);
+        child = child->next;
+    }
+
 }
