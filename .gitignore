@@ -1,0 +1,17 @@
+# 构建产物
+build/
+out/
+*.exe
+*.obj
+*.ilk
+*.pdb
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# CMake 生成文件
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
