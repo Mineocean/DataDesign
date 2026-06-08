@@ -74,6 +74,7 @@ TraverseResult* getTraverseList(TreeNode* root, int* result_count) {
         }
     }
     count_nodes(root, result_count);
+}
 
 
 
