@@ -18,4 +18,5 @@ int countFiles(TreeNode* node);
  */
 int getMaxDepth(TreeNode* node);
 
+void traverse(TreeNode* node, void (*callback)(TreeNode*))
 #endif
