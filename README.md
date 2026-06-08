@@ -40,8 +40,8 @@ graph TD
 |------|------|------|
 | `tree.h` | A | TreeNode / FileSystem 结构定义 + API 声明 |
 | `tree.c` | A | 初始化、增删改查、路径查找、内存释放 |
-| `stat.h` | B | countFiles / getMaxDepth 声明 |
-| `stat.c` | B | 统计函数实现（待交付） |
+| `stat.h` | B | countFiles / getMaxDepth / traverse 声明 |
+| `stat.c` | B | 统计与遍历函数实现 |
 | `main.c` | C | 树形可视化打印 + 命令行菜单交互 |
 | `test_tree.c` | A | 单元测试（26 用例） |
 
