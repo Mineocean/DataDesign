@@ -51,7 +51,7 @@ int countFiles(TreeNode* node) {
  * ================================================================ */
 int getMaxDepth(TreeNode* node) {
     if (node == NULL) {
-        return -1;  // 空树深度为-1
+        return 0;
     }
 
     int maxDepth = 0;
@@ -59,14 +59,14 @@ int getMaxDepth(TreeNode* node) {
     // 遍历所有子节点，找到最大的子树深度
     TreeNode* child = node->children;
     while (child != NULL) {
-        int childDepth = getMaxDepth(child) + 1;
+        int childDepth = getMaxDepth(child);
         if (childDepth > maxDepth) {
             maxDepth = childDepth;
         }
         child = child->next;
     }
 
-    return maxDepth;
+    return maxDepth + 1;
 
 }
 
