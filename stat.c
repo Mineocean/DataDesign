@@ -9,8 +9,7 @@
  * 编译：cl /utf-8 /c stat.c
  *
  * ── 给成员B ──
- * 当前是空壳（返回 0），目的是让主程序能先编译通过。
- * 你只需要把下面两个函数体里的 return 0 替换成真正的实现即可。
+ * 当前文件已完成：countFiles / getMaxDepth / traverse 均已实现。
  * 函数签名不要改——main.c 和 stat.h 都依赖它们。
  */
 
