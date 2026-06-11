@@ -46,18 +46,19 @@ static void userPathToInternal(const char* userPath,
 /* ---------- 树形可视化 ---------- */
 static void printTreeNode(TreeNode* node, const char* prefix, int isLast) {
     if (node == NULL) return;
-    printf("%s", prefix);
-    printf(isLast ? "└── " : "├── ");
-    printf("%s", node->name);
-    if (node->isFile)
-        printf(" (file)");
-    printf("\n");
+    /* 合并为一次 printf，减少 IO 调用 */
+    printf("%s%s%s%s\n",
+           prefix,
+           isLast ? "└── " : "├── ",
+           node->name,
+           node->isFile ? " (file)" : "");
 
-    char newPrefix[512];
+    char newPrefix[MAX_PATH_LEN];
     sprintf(newPrefix, "%s%s", prefix, isLast ? "    " : "│   ");
     TreeNode* child = node->children;
     while (child != NULL) {
-        printTreeNode(child, newPrefix, child->next == NULL);
+        int last = (child->next == NULL);
+        printTreeNode(child, newPrefix, last);
         child = child->next;
     }
 }
@@ -70,7 +71,8 @@ static void printTree(void) {
     printf("\n当前树结构\n");
     TreeNode* child = fs.root->children;
     while (child != NULL) {
-        printTreeNode(child, "", child->next == NULL);
+        int last = (child->next == NULL);
+        printTreeNode(child, "", last);
         child = child->next;
     }
     printf("\n");
@@ -78,14 +80,15 @@ static void printTree(void) {
 
 /* ---------- 菜单 ---------- */
 static void showMenu(void) {
-    printf("\n========== 简易文件目录树管理 ==========\n");
-    printf("1. 查看目录树\n");
-    printf("2. 新增文件夹或文件\n");
-    printf("3. 删除节点\n");
-    printf("4. 重命名节点\n");
-    printf("5. 统计文件总数和文件夹层数\n");
-    printf("0. 退出\n");
-    printf("请选择操作：");
+    /* 合并为一个 puts/printf，减少函数调用 */
+    printf("\n========== 简易文件目录树管理 ==========\n"
+           "1. 查看目录树\n"
+           "2. 新增文件夹或文件\n"
+           "3. 删除节点\n"
+           "4. 重命名节点\n"
+           "5. 统计文件总数和文件夹层数\n"
+           "0. 退出\n"
+           "请选择操作：");
 }
 
 /* ---------- 操作处理 ---------- */
