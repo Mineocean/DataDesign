@@ -1,138 +1,60 @@
 /*
  * stat.c — 成员B：递归遍历与统计功能
- *
- * 任务：
- *   1. 实现 countFiles —— 深度优先遍历，累计 isFile==true 的节点数
- *   2. 实现 getMaxDepth —— 计算树的最大深度（根为第1层）
- *
- * 依赖：tree.h（TreeNode 结构体定义）
- * 编译：cl /utf-8 /c stat.c
- *
- * ── 给成员B ──
- * 当前文件已完成：countFiles / getMaxDepth / traverse 均已实现。
- * 函数签名不要改——main.c 和 stat.h 都依赖它们。
  */
 
+#include <string.h>
 #include "stat.h"
 
-/* ================================================================
- * countFiles(node)
- *   从 node 开始深度优先遍历整棵子树，返回文件（isFile==true）总数。
- *   提示：递归遍历 children 链表，遇文件 +1，遇文件夹继续深入。
- *   时间复杂度目标：O(n)
- * ================================================================ */
 int countFiles(TreeNode* node) {
-    if (node == NULL) {
-        return 0;
-    }
-
-    int count = 0;
-
-    // 如果当前节点是文件，计数加1
-    if (node->isFile) {
-        count = 1;
-    }
-
-    // 递归遍历所有子节点
+    if (node == NULL) return 0;
+    int count = node->isFile ? 1 : 0;
     TreeNode* child = node->children;
     while (child != NULL) {
         count += countFiles(child);
         child = child->next;
     }
-
     return count;
 }
-/* ================================================================
- * getMaxDepth(node)
- *   返回从 node 开始的最大深度。
- *   约定：根为第 1 层。空节点（NULL）返回 0。
- *   提示：递归取所有子节点深度的最大值 + 1。
- * ================================================================ */
+
 int getMaxDepth(TreeNode* node) {
-    if (node == NULL) {
-        return 0;
-    }
-
-    int maxDepth = 0;
-
-    // 遍历所有子节点，找到最大的子树深度
+    if (node == NULL) return 0;
+    int maxChildDepth = 0;
     TreeNode* child = node->children;
     while (child != NULL) {
-        int childDepth = getMaxDepth(child);
-        if (childDepth > maxDepth) {
-            maxDepth = childDepth;
-        }
+        int d = getMaxDepth(child);
+        if (d > maxChildDepth) maxChildDepth = d;
         child = child->next;
     }
-
-    return maxDepth + 1;
-
+    return maxChildDepth + 1;
 }
 
-/**
- * 函数功能：使用回调函数遍历树的所有节点（前序遍历）
- * 参数 node：要遍历的树的根节点
- * 参数 callback：回调函数，对每个节点执行的操作
- */
 void traverse(TreeNode* node, void (*callback)(TreeNode*)) {
-    if (node == NULL || callback == NULL) {
-        return;
-    }
-
-    // 先处理当前节点
+    if (node == NULL || callback == NULL) return;
     callback(node);
-
-    // 再递归遍历所有子节点
     TreeNode* child = node->children;
     while (child != NULL) {
         traverse(child, callback);
         child = child->next;
     }
-
 }
 
-int search(TreeNode* node, const char* keyword, TreeNode** results, int maxResults)
-{if (node == NULL || keyword == NULL || results == NULL || maxResults <= 0) {
+int search(TreeNode* node, const char* keyword,
+           TreeNode** results, int maxResults) {
+    if (node == NULL || keyword == NULL || keyword[0] == '\0'
+        || results == NULL || maxResults <= 0)
         return 0;
-    }
-    int count = 0;
-    // 如果当前节点名称包含关键字，保存到结果数组
-    if (strstr(node->name, keyword) != NULL) {
-        if (count < maxResults) {
-            results[count] = node;
-            count++;
-        } else {
-            return count; // 已达到最大结果数，返回当前计数
-        }
-    }
-    // 递归搜索所有子节点
-    TreeNode* child = node->children;
-    while (child != NULL) {
-        count += search(child, keyword, results + count, maxResults - count);
-        child = child->next;
-    }
-	return count;
-}
 
-int search(TreeNode* node, const char* keyword, TreeNode** results, int maxResults)
-{if (node == NULL || keyword == NULL || results == NULL || maxResults <= 0) {
-        return 0;
-    }
     int count = 0;
-    // 如果当前节点名称包含关键字，保存到结果数组
     if (strstr(node->name, keyword) != NULL) {
-        if (count < maxResults) {
-            results[count] = node;
-            count++;
-        } else {
-            return count; // 已达到最大结果数，返回当前计数
-        }
+        results[count] = node;
+        count++;
     }
-    // 递归搜索所有子节点
     TreeNode* child = node->children;
-    while (child != NULL) {
-        count += search(child, keyword, results + count, maxResults - count);
+    while (child != NULL && count < maxResults) {
+        int sub = search(child, keyword,
+                         results + count, maxResults - count);
+        count += sub;
         child = child->next;
     }
-	return count;
+    return count;
 }
