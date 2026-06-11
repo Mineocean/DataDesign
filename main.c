@@ -11,6 +11,8 @@
 static FileSystem fs;
 static const char* SAVE_FILE = "tree.dat";
 
+#define SEP "----------------------------------------"
+
 static void trim(char* str) {
     char* start = str;
     while (*start && isspace((unsigned char)*start)) start++;
@@ -35,6 +37,17 @@ static void userPathToInternal(const char* userPath, char* internal, int size) {
         snprintf(internal, size, "/root/%s", userPath);
 }
 
+/* ---------- 分割线 ---------- */
+static void printSep(void) {
+    printf("\n%s\n", SEP);
+}
+
+static void waitEnter(void) {
+    printf("按回车继续操作...");
+    char buf[10];
+    fgets(buf, sizeof(buf), stdin);
+}
+
 /* ---------- 树形可视化 ---------- */
 static void printTreeNode(TreeNode* node, const char* prefix, int isLast) {
     if (node == NULL) return;
@@ -55,18 +68,18 @@ static void printTree(void) {
         printf("树为空\n");
         return;
     }
-    printf("\n当前树结构\n");
+    printf("当前树结构\n");
     TreeNode* child = fs.root->children;
     while (child != NULL) {
         printTreeNode(child, "", child->next == NULL);
         child = child->next;
     }
-    printf("\n");
 }
 
 /* ---------- 菜单 ---------- */
 static void showMenu(void) {
-    printf("\n========== 简易文件目录树管理 ==========\n"
+    printSep();
+    printf("简易文件目录树管理\n"
            "1. 查看目录树\n"
            "2. 新增文件夹或文件\n"
            "3. 删除节点\n"
@@ -129,7 +142,7 @@ static void handleRename(void) {
 }
 
 static void showStats(void) {
-    printf("\n统计信息：\n");
+    printf("统计信息：\n");
     printf("文件总数: %d\n", countFiles(fs.root));
     printf("文件夹层数: %d\n", getMaxDepth(fs.root));
 }
@@ -143,7 +156,6 @@ static void handleSearch(void) {
     readInput(keyword, sizeof(keyword));
     trim(keyword);
     if (strlen(keyword) == 0) { printf("无效的关键字\n"); return; }
-
     TreeNode* results[MAX_RESULTS];
     int cnt = search(fs.root, keyword, results, MAX_RESULTS);
     if (cnt == 0) {
@@ -187,6 +199,20 @@ static void handleLoad(void) {
     printf("已从 %s 加载\n", SAVE_FILE);
 }
 
+/* ---------- 预制演示数据 ---------- */
+static void createSampleData(void) {
+    addNode(&fs, "/root", "项目文档", false);
+    addNode(&fs, "/root/项目文档", "设计报告.doc", true);
+    addNode(&fs, "/root/项目文档", "需求分析.doc", true);
+    addNode(&fs, "/root", "源代码", false);
+    addNode(&fs, "/root/源代码", "main.c", true);
+    addNode(&fs, "/root/源代码", "tree.h", true);
+    addNode(&fs, "/root/源代码", "tree.c", true);
+    addNode(&fs, "/root/源代码", "stat.c", true);
+    addNode(&fs, "/root", "说明.txt", true);
+    printf("已创建演示目录树\n");
+}
+
 /* ---------- 入口 ---------- */
 int main(void) {
     system("chcp 65001 >nul");
@@ -200,14 +226,16 @@ int main(void) {
             printf("已自动加载存档 %s\n", SAVE_FILE);
         } else {
             initFileSystem(&fs);
+            createSampleData();
         }
     } else {
         initFileSystem(&fs);
+        createSampleData();
     }
 
+    showMenu();
     int choice;
     do {
-        showMenu();
         char input[10];
         readInput(input, sizeof(input));
         choice = atoi(input);
@@ -220,8 +248,22 @@ int main(void) {
         case 6: handleSearch();  break;
         case 7: handleSave();    break;
         case 8: handleLoad();    break;
-        case 0: printf("退出程序\n"); break;
+        case 0:
+            printf("确认退出？(y/n)：");
+            readInput(input, sizeof(input));
+            trim(input);
+            if (input[0] == 'y' || input[0] == 'Y') {
+                printf("退出程序\n");
+            } else {
+                choice = -1;
+            }
+            break;
         default: printf("无效的选择\n");
+        }
+        if (choice != 0) {
+            printSep();
+            waitEnter();
+            printf("\n请选择操作：");
         }
     } while (choice != 0);
 
