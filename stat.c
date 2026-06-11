@@ -90,3 +90,26 @@ void traverse(TreeNode* node, void (*callback)(TreeNode*)) {
     }
 
 }
+
+int search(TreeNode* node, const char* keyword, TreeNode** results, int maxResults)
+{if (node == NULL || keyword == NULL || results == NULL || maxResults <= 0) {
+        return 0;
+    }
+    int count = 0;
+    // 如果当前节点名称包含关键字，保存到结果数组
+    if (strstr(node->name, keyword) != NULL) {
+        if (count < maxResults) {
+            results[count] = node;
+            count++;
+        } else {
+            return count; // 已达到最大结果数，返回当前计数
+        }
+    }
+    // 递归搜索所有子节点
+    TreeNode* child = node->children;
+    while (child != NULL) {
+        count += search(child, keyword, results + count, maxResults - count);
+        child = child->next;
+    }
+	return count;
+}
