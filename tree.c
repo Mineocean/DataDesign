@@ -1,17 +1,10 @@
-#include <stdio.h>
+#include "tree.h"
 #include <stdlib.h>
 #include <string.h>
-#include "tree.h"
 
-/* ===== 成员A：树结构模型与基础操作 ===== */
-
-/* 初始化文件系统 */
+// 初始化文件系统
 void initFileSystem(FileSystem* fs) {
     fs->root = (TreeNode*)malloc(sizeof(TreeNode));
-    if (fs->root == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
     strcpy(fs->root->name, "root");
     fs->root->isFile = false;
     fs->root->parent = NULL;
@@ -19,15 +12,15 @@ void initFileSystem(FileSystem* fs) {
     fs->root->next = NULL;
 }
 
-/* 按路径查找 */
+// 查找节点
 TreeNode* findNode(FileSystem* fs, const char* path) {
-    if (fs == NULL || fs->root == NULL) return NULL;
-    if (strcmp(path, "/root") == 0) return fs->root;
+    if (strcmp(path, "/root") == 0 || strcmp(path, "root") == 0) {
+        return fs->root;
+    }
 
     TreeNode* current = fs->root;
     char tempPath[MAX_PATH_LEN];
-    strncpy(tempPath, path, MAX_PATH_LEN - 1);
-    tempPath[MAX_PATH_LEN - 1] = '\0';
+    strcpy(tempPath, path);
 
     char* token = strtok(tempPath, "/");
     while (token != NULL) {
@@ -35,8 +28,9 @@ TreeNode* findNode(FileSystem* fs, const char* path) {
             token = strtok(NULL, "/");
             continue;
         }
-        bool found = false;
+
         TreeNode* child = current->children;
+        bool found = false;
         while (child != NULL) {
             if (strcmp(child->name, token) == 0) {
                 current = child;
@@ -51,109 +45,173 @@ TreeNode* findNode(FileSystem* fs, const char* path) {
     return current;
 }
 
-/* 新增节点 */
-bool addNode(FileSystem* fs, const char* parentPath,
-             const char* name, bool isFile) {
+// 添加节点
+bool addNode(FileSystem* fs, const char* parentPath, const char* name, bool isFile) {
     TreeNode* parent = findNode(fs, parentPath);
     if (parent == NULL) {
-        printf("Error: parent path %s does not exist.\n", parentPath);
+        printf("Error: Parent path %s does not exist.\n", parentPath);
         return false;
-    }
-    if (parent->isFile) {
-        printf("Error: parent %s is a file, cannot add child.\n", parentPath);
-        return false;
-    }
-    /* 检查是否重名 */
-    TreeNode* sibling = parent->children;
-    while (sibling != NULL) {
-        if (strcmp(sibling->name, name) == 0) {
-            printf("Error: name %s already exists in %s.\n", name, parentPath);
-            return false;
-        }
-        sibling = sibling->next;
     }
 
-    TreeNode* node = (TreeNode*)malloc(sizeof(TreeNode));
-    if (node == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
+    if (parent->isFile) {
+        printf("Error: %s is a file, cannot add child.\n", parentPath);
         return false;
     }
-    strncpy(node->name, name, MAX_NAME_LEN - 1);
-    node->name[MAX_NAME_LEN - 1] = '\0';
-    node->isFile = isFile;
-    node->parent = parent;
-    node->children = NULL;
-    node->next = parent->children;   /* 头插法 */
-    parent->children = node;
+
+    // 检查重名
+    TreeNode* child = parent->children;
+    while (child != NULL) {
+        if (strcmp(child->name, name) == 0) {
+            printf("Error: Name %s already exists in %s.\n", name, parentPath);
+            return false;
+        }
+        child = child->next;
+    }
+
+    // 创建新节点
+    TreeNode* newNode = (TreeNode*)malloc(sizeof(TreeNode));
+    strcpy(newNode->name, name);
+    newNode->isFile = isFile;
+    newNode->parent = parent;
+    newNode->children = NULL;
+    newNode->next = parent->children;
+    parent->children = newNode;
+
     return true;
 }
 
-/* 递归释放（内部） */
-static void freeSubtree(TreeNode* node) {
+// 递归删除子树
+static void deleteSubtree(TreeNode* node) {
     if (node == NULL) return;
+
     TreeNode* child = node->children;
     while (child != NULL) {
-        TreeNode* nextSibling = child->next;
-        freeSubtree(child);
-        child = nextSibling;
+        TreeNode* next = child->next;
+        deleteSubtree(child);
+        child = next;
     }
     free(node);
 }
 
-void freeTree(TreeNode* node) {
-    freeSubtree(node);
-}
-
-/* 删除节点 */
+// 删除节点
 bool deleteNode(FileSystem* fs, const char* path) {
+    if (strcmp(path, "/root") == 0 || strcmp(path, "root") == 0) {
+        printf("Error: Cannot delete root.\n");
+        return false;
+    }
+
     TreeNode* node = findNode(fs, path);
     if (node == NULL) {
-        printf("Error: path %s does not exist.\n", path);
+        printf("Error: Path %s does not exist.\n", path);
         return false;
     }
-    if (node->parent == NULL) {
-        printf("Error: cannot delete root node.\n");
-        return false;
-    }
-    /* 从父节点的孩子链表中摘除 */
+
     TreeNode* parent = node->parent;
     if (parent->children == node) {
         parent->children = node->next;
-    } else {
-        TreeNode* prev = parent->children;
-        while (prev != NULL && prev->next != node)
-            prev = prev->next;
-        if (prev != NULL)
-            prev->next = node->next;
     }
-    node->next = NULL;
-    freeSubtree(node);
+    else {
+        TreeNode* prev = parent->children;
+        while (prev->next != node) {
+            prev = prev->next;
+        }
+        prev->next = node->next;
+    }
+
+    deleteSubtree(node);
     return true;
 }
 
-/* 重命名 */
+// 重命名节点
 bool renameNode(FileSystem* fs, const char* path, const char* newName) {
     TreeNode* node = findNode(fs, path);
     if (node == NULL) {
-        printf("Error: path %s does not exist.\n", path);
+        printf("Error: Path %s does not exist.\n", path);
         return false;
     }
-    /* 检查同级的重名冲突 */
+
     TreeNode* parent = node->parent;
     if (parent != NULL) {
         TreeNode* sibling = parent->children;
         while (sibling != NULL) {
             if (sibling != node && strcmp(sibling->name, newName) == 0) {
-                printf("Error: name %s already exists in %s.\n",
-                       newName, parent->name);
+                printf("Error: Name %s already exists.\n", newName);
                 return false;
             }
             sibling = sibling->next;
         }
     }
-    strncpy(node->name, newName, MAX_NAME_LEN - 1);
-    node->name[MAX_NAME_LEN - 1] = '\0';
+
+    strcpy(node->name, newName);
     return true;
 }
 
+// 释放整棵树
+void freeTree(TreeNode* node) {
+    deleteSubtree(node);
+}
 
+// 保存树到文件
+bool saveTree(FILE* fp, TreeNode* node) {
+    if (node == NULL) return true;
+
+    // 写入节点名
+    fprintf(fp, "%s\n", node->name);
+    // 写入类型（0文件夹 1文件）
+    fprintf(fp, "%d\n", node->isFile);
+
+    // 递归保存子节点
+    TreeNode* child = node->children;
+    while (child != NULL) {
+        if (!saveTree(fp, child)) return false;
+        child = child->next;
+    }
+
+    // 子节点结束标记
+    fprintf(fp, "#END\n");
+    return true;
+}
+
+// 从文件加载树
+TreeNode* loadTree(FILE* fp) {
+    char line[MAX_NAME_LEN];
+
+    // 读节点名
+    if (fgets(line, sizeof(line), fp) == NULL) return NULL;
+    line[strcspn(line, "\n")] = '\0';
+
+    // 遇到结束标记
+    if (strcmp(line, "#END") == 0) return NULL;
+
+    // 创建节点
+    TreeNode* node = (TreeNode*)malloc(sizeof(TreeNode));
+    strcpy(node->name, line);
+    node->parent = NULL;
+    node->children = NULL;
+    node->next = NULL;
+
+    // 读类型
+    if (fgets(line, sizeof(line), fp) == NULL) {
+        free(node);
+        return NULL;
+    }
+    node->isFile = (atoi(line) == 1);
+
+    // 递归加载子节点
+    TreeNode* prev = NULL;
+    while (1) {
+        TreeNode* child = loadTree(fp);
+        if (child == NULL) break;
+
+        child->parent = node;
+        if (prev == NULL) {
+            node->children = child;
+        }
+        else {
+            prev->next = child;
+        }
+        prev = child;
+    }
+
+    return node;
+}
